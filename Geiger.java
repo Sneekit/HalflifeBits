@@ -1,6 +1,6 @@
 import java.util.Random;
 import java.time.format.DateTimeFormatter;  
-import java.time.LocalDateTime;    
+import java.time.LocalDateTime;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
@@ -13,8 +13,8 @@ import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 public class Geiger
 {
-	int Counter = 0;
 	GpioPinDigitalInput GeigerSignal = null;
+	int Counter = 0;
 
 	public Geiger()
 	{
@@ -51,15 +51,13 @@ public class Geiger
 	{
 		while (true)
 		{
-			if (Counter == 2147483647)
-				Counter = 0;
-
 			Counter += 1;
 
-			if (Counter % 10000 == 0)
+			if (Counter == 1000000)
 			{
-				Random r = new Random(Counter);
-				int result = r.nextInt(25000);
+				Counter = 0;
+				Random r = new Random(System.currentTimeMillis());
+				int result = r.nextInt(500);
 				if (result == 0)
 					HandleGeigerEvent(LocalDateTime.now(), 7, "HIGH");
 			}

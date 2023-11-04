@@ -8,9 +8,7 @@ class HalflifeBits
 		// This simulates a geiger counter
 		if (debug)
 		{
-			new Thread(() -> {
-				geiger.SimulateGeiger();
-			}).start();
+			new Thread(() -> { geiger.SimulateGeiger(); }).start();
 		}
 
 		while (true)

@@ -12,3 +12,6 @@ WiringPi: http://wiringpi.com
 pi4j: https://pi4j.com/
 Sample applications from pi4j can be found here: https://github.com/Pi4J/pi4j-v1/tree/master/pi4j-example/src/main/java
 
+# GPIO
+Use the `pinout` command on the terminal to see the pin mapping. pi4j uses the inner column for pin numbering.
+Use the `cat /proc/cpuinfo` command on the terminal to see the raspberry pi system information
