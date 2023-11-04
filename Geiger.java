@@ -24,7 +24,8 @@ public class Geiger
 		GpioController gpio = GpioFactory.getInstance();
 
 		// Provision pin as an input pin
-		GeigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07, PinPullResistance.PULL_DOWN);
+		//GeigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07, PinPullResistance.PULL_DOWN);
+		GeigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07);
 		GeigerSignal.setShutdownOptions(true);
 
 		// create and register pin listener listener
@@ -33,17 +34,17 @@ public class Geiger
             @Override
             public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) 
 			{
-				HandleGeigerEvent(7, event.getState().toString());
+				HandleGeigerEvent(LocalDateTime.now(), 7, event.getState().toString());
             }
 
         });
 	}
 
-	public void HandleGeigerEvent(int pin, String state)
+	public void HandleGeigerEvent(LocalDateTime time, int pin, String state)
 	{
 		//System.out.println(" --> GPIO PIN STATE CHANGE: " + pin + " = " + state);
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSSSSS");
-		System.out.println("[" + dtf.format(LocalDateTime.now()) + "]" + " - Decay detected");
+		System.out.println("[" + dtf.format(time) + "]" + " - Decay detected");
 	}
 
 	public void SimulateGeiger()
@@ -60,7 +61,7 @@ public class Geiger
 				Random r = new Random(Counter);
 				int result = r.nextInt(25000);
 				if (result == 0)
-					HandleGeigerEvent(7, "HIGH");
+					HandleGeigerEvent(LocalDateTime.now(), 7, "HIGH");
 			}
 		}
 	}
