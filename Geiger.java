@@ -13,53 +13,80 @@ import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 public class Geiger
 {
-	GpioPinDigitalInput GeigerSignal = null;
-	int Counter = 0;
+	GpioPinDigitalInput geigerSignal = null;
+	PostgresConnector db = null;
+	int counter = 0;
+	int gpio_pin = 7;
 
-	public Geiger()
+	/**
+	 * Constructor for the Geiger class with dependencies injected
+	 */
+	public Geiger(PostgresConnector postgresConnector)
 	{
-		System.out.println("GPIO listener started for pin 7.");
+		db = postgresConnector;
+		System.out.println("GPIO listener started for pin " + gpio_pin + ".");
 
 		// Create GPIO Controller
 		GpioController gpio = GpioFactory.getInstance();
 
 		// Provision pin as an input pin
-		//GeigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07, PinPullResistance.PULL_DOWN);
-		GeigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07);
-		GeigerSignal.setShutdownOptions(true);
+		// GeigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07);
+		geigerSignal = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07, PinPullResistance.PULL_DOWN);
+		geigerSignal.setShutdownOptions(true);
 
-		// create and register pin listener listener
-        GeigerSignal.addListener(new GpioPinListenerDigital() 
+		// Create and register to internal event when GPIO pin voltage drops
+        geigerSignal.addListener(new GpioPinListenerDigital() 
 		{
             @Override
             public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) 
 			{
-				HandleGeigerEvent(LocalDateTime.now(), 7, event.getState().toString());
+				String state = event.getState().toString();
+				handleGeigerEvent(LocalDateTime.now(), gpio_pin);
+
             }
 
         });
 	}
 
-	public void HandleGeigerEvent(LocalDateTime time, int pin, String state)
+	/**
+	 * Handles the GPIO pin voltage down event
+	 * 
+	 * @param time		The time of the event
+	 * @param pin		The integer representation of the board layout pin number
+	 */
+	public void handleGeigerEvent(LocalDateTime time, int pin)
 	{
-		//System.out.println(" --> GPIO PIN STATE CHANGE: " + pin + " = " + state);
+		// Format the current datetime to microsecond precision
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSSSSS");
-		System.out.println("[" + dtf.format(time) + "]" + " - Decay detected");
+		String timeStamp = dtf.format(time);
+		System.out.println("[" + timeStamp + "]" + " - Decay detected");
+
+		// Insert the timestamp into the database
+		String query = new StringBuilder()
+			.append("INSERT INTO decays (timestamp)")
+			.append("VALUES(?);")
+			.toString();
+
+		String[] params = new String[] { timeStamp };
+		db.executeQuery(query, params);
 	}
 
-	public void SimulateGeiger()
+	/**
+	 * Simulates a geiger counter for testing code in debug
+	 */
+	public void simulateGeiger()
 	{
 		while (true)
 		{
-			Counter += 1;
+			counter += 1;
 
-			if (Counter == 1000000)
+			if (counter == 1000000)
 			{
-				Counter = 0;
+				counter = 0;
 				Random r = new Random(System.currentTimeMillis());
 				int result = r.nextInt(500);
 				if (result == 0)
-					HandleGeigerEvent(LocalDateTime.now(), 7, "HIGH");
+					handleGeigerEvent(LocalDateTime.now(), gpio_pin);
 			}
 		}
 	}
