@@ -23,7 +23,7 @@ public class PostgresConnector
         try 
         {
             // Load database credentials from config file
-            InputStream input = new FileInputStream("properties.config");
+            InputStream input = new FileInputStream("Config/db.config");
             Properties prop = new Properties();
             prop.load(input);
 
@@ -57,7 +57,7 @@ public class PostgresConnector
 	 * 
 	 * @return the JsonArray of results
 	 */
-    public JsonArray executeQuery(String query, String[] params) throws SQLException
+    public JsonArray executeQuery(String query, String[] params)
     {
 		// Instantiate the results
         JsonArray results = new JsonArray();
