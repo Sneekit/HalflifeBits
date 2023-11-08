@@ -1,5 +1,6 @@
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
+import org.postgresql.Driver;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,10 +9,13 @@ import java.util.Properties;
 
 public class PostgresConnector 
 {
-    Connection connection = null;
+    Connection Connection = null;
+	boolean Debug = false;
 
-    public PostgresConnector()
+    public PostgresConnector(boolean debug)
     {
+		Debug = debug;
+
         openConnection();
     }
 
@@ -34,10 +38,10 @@ public class PostgresConnector
             input.close();
 
             // Create the connection to the postgres driver
-            connection = DriverManager.getConnection(url, username, password);
+            Connection = DriverManager.getConnection(url, username, password);
 
             // Execute a test query to confirm the connection
-            executeQuery("SELECT * FROM decay LIMIT 1;", null);
+            executeQueryWithResults("SELECT * FROM neurons LIMIT 1;", null);
         } 
         catch (IOException e) 
         {
@@ -48,6 +52,42 @@ public class PostgresConnector
             e.printStackTrace();
         } 
     }
+
+    /**
+     * Executes a query string with parameters with no results
+	 * Prevents SQL injection on the parameters
+     *
+     * @param query			The query string
+	 * @param params		The string array of parameters
+	 * 
+	 * @return the JsonArray of results
+	 */
+    public void executeQuery(String query, String[] params)
+    {
+        try
+        {
+			// test and re-open connection if needed
+			if (Connection == null || Connection.isClosed())
+				openConnection();
+
+            PreparedStatement statement = Connection.prepareStatement(query);
+			statement = addStatementParams(statement, params);
+
+            statement.executeUpdate();
+
+            statement.close();
+
+        }
+        catch (SQLException e) 
+        {
+            e.printStackTrace();
+        }
+        catch (Exception e) 
+        {
+            e.printStackTrace();
+        }
+    }
+
 	/**
      * Executes a query string with parameters and returns the results
 	 * Prevents SQL injection on the parameters
@@ -57,7 +97,7 @@ public class PostgresConnector
 	 * 
 	 * @return the JsonArray of results
 	 */
-    public JsonArray executeQuery(String query, String[] params)
+    public JsonArray executeQueryWithResults(String query, String[] params)
     {
 		// Instantiate the results
         JsonArray results = new JsonArray();
@@ -65,13 +105,13 @@ public class PostgresConnector
         try
         {
 			// test and re-open connection if needed
-			if (connection == null || connection.isClosed())
+			if (Connection == null || Connection.isClosed())
 				openConnection();
 
-            PreparedStatement statement = connection.prepareStatement(query);
+            PreparedStatement statement = Connection.prepareStatement(query);
 			statement = addStatementParams(statement, params);
 
-            ResultSet resultSet = statement.executeQuery(query);
+            ResultSet resultSet = statement.executeQuery();
 
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
@@ -96,6 +136,10 @@ public class PostgresConnector
 
         }
         catch (SQLException e) 
+        {
+            e.printStackTrace();
+        }
+        catch (Exception e) 
         {
             e.printStackTrace();
         }

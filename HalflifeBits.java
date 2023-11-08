@@ -2,17 +2,18 @@ class HalflifeBits
 {
 	public static void main(String[] args) throws InterruptedException
 	{
-		// Instantiate classes
-		PostgresConnector connector = new PostgresConnector();
-		Geiger geiger = new Geiger(connector);
 
 		// Set current debug state
-		boolean debug = true;
+		boolean Debug = true;
+
+		// Instantiate classes
+		PostgresConnector Connector = new PostgresConnector(Debug);
+		Geiger Geiger = new Geiger(Connector);
 
 		// Simulates a geiger counter in debug mode
-		if (debug)
+		if (Debug)
 		{
-			new Thread(() -> { geiger.simulateGeiger(); }).start();
+			new Thread(() -> { Geiger.simulateGeiger(); }).start();
 		}
 
 		// Keep the program alive
