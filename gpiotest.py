@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 
-from time import sleep  # Allows us to call the sleep function to slow down our loop
-import RPi.GPIO as GPIO # Allows us to call our GPIO pins and names it just GPIO
- 
-GPIO.setmode(GPIO.BCM)  # Set's GPIO pins to BCM GPIO numbering
-INPUT_PIN = 7           # Sets our input pin, in this example I'm connecting our button to pin 4. Pin 0 is the SDA pin so I avoid using it for sensors/buttons
-GPIO.setup(INPUT_PIN, GPIO.IN)  # Set our input pin to be an input
+from time import sleep
+import datetime
+import RPi.GPIO as GPIO
+
+# Set's GPIO pins to BCM GPIO numbering
+GPIO.setmode(GPIO.BOARD) 
+INPUT_PIN = 15
+GPIO.setup(INPUT_PIN, GPIO.IN)
 
 # Create a function to run when the input is high
-def inputLow(channel):
-    print('GEIGER BABY');
+def geigerHit(channel):
+	timestamp = datetime.datetime.now()
+	print(f"[{timestamp}] - Decay detected!")
 
-GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, callback=inputLow, bouncetime=200) # Wait for the input to go low, run the function when it does
+# Wait for the input to go low, run the function when it does
+GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, callback = geigerHit)
 
 # Start a loop that never ends
 while True:
