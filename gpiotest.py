@@ -3,10 +3,18 @@
 from time import sleep
 import datetime
 import RPi.GPIO as GPIO
+import json
+import os 
 
 results_dict = {}
-for i in range(100):
-	results_dict[i + 1] = 0
+if os.path.getsize('dictionary.txt') == 0:
+	for i in range(100):
+		results_dict[i + 1] = 0
+else:
+	with open('dictionary.txt') as f: 
+		loaded_dict = json.load(f)
+		results_dict = {int(key): value for key, value in loaded_dict.items()}
+		open('dictionary.txt', 'w').close()
 
 # Set's GPIO pins to BCM GPIO numbering
 GPIO.setmode(GPIO.BOARD) 
@@ -32,5 +40,6 @@ try:
 		sleep(100)
 except KeyboardInterrupt:
 	print(results_dict)
-
+	with open('dictionary.txt', 'w') as convert_file: 
+		convert_file.write(json.dumps(results_dict))
 # Start a loop that never ends
