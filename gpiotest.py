@@ -6,7 +6,10 @@ import RPi.GPIO as GPIO
 import json
 import os 
 import asyncio
+import postgres
 
+DB = postgres.PostgresConnector()
+DB.connect()
 
 FILE_NAME = 'Output/random_number_results.txt'
 RESULTS_DICT = {}
@@ -22,7 +25,6 @@ else:
 		loaded_dict = json.load(f)
 		RESULTS_DICT = {int(key): value for key, value in loaded_dict.items()}
 		print("Successfully loaded existing results.")
-		print(RESULTS_DICT)
 
 INPUT_PIN = 15
 GPIO.setmode(GPIO.BOARD) 
@@ -36,9 +38,22 @@ def geigerHit(channel):
 	if rnd_nmbr == 0:
 		rnd_nmbr = 100
 
+	# track the random numbers that were generated
 	RESULTS_DICT[rnd_nmbr] += 1
 
-	print(f"[{timestamp}] - Decay detected! . . . Random Number: {rnd_nmbr}")
+	# insert neuron detection into database
+	asyncio.run(insertNeuron(timestamp))
+
+	print(f"[{timestamp}] - Decay detected! - Random Number: {rnd_nmbr}")
+
+async def insertNeuron(timestamp):
+	query = """
+		INSERT INTO neurons (detected_at)
+		VALUES(%s);
+	"""
+	values = [timestamp.strftime('%m/%d/%Y %H:%M:%S.%f')]
+
+	DB.execute_write(query, values)
 
 async def saveFile():
 	with open(FILE_NAME, 'w') as file: 
@@ -54,5 +69,4 @@ try:
 		sleep(10)
 
 except KeyboardInterrupt:
-	print(RESULTS_DICT)
 	asyncio.run(saveFile())
