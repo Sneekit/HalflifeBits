@@ -35,8 +35,15 @@ class PostgresConnector:
 		except Exception as e:
 			print(f"Error: Unable to connect to the database: {e}")
 
+	def ensure_connection(self):
+		if self.connection.closed == 1:
+			print("Connection failed, restarting...")
+			self.connect()
+			print("Connected")
+
 	def execute_query(self, query, values=None):
 		try:
+			self.ensure_connection()
 			cursor = self.connection.cursor()
 			if values is not None:
 				if values is list:
@@ -52,6 +59,7 @@ class PostgresConnector:
 
 	def execute_write(self, query, values=None):
 		try:
+			self.ensure_connection()
 			cursor = self.connection.cursor()
 			if values is not None:
 				if type(values) is list:

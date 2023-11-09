@@ -1,1 +1,1 @@
-sudo nohup python3 gpiotest.py &
+nohup python3 gpiotest.py &
