@@ -1,2 +1,3 @@
 *.class
+Output/*
 Config/db.config

@@ -5,10 +5,14 @@ import datetime
 import RPi.GPIO as GPIO
 import json
 import os 
+import asyncio
 
 
 FILE_NAME = 'Output/random_number_results.txt'
 RESULTS_DICT = {}
+
+if not os.path.exists("Output"):
+	os.makedirs("Output")
 
 if not os.path.exists(FILE_NAME) or os.path.getsize(FILE_NAME) == 0:
 	for i in range(100):
@@ -36,7 +40,7 @@ def geigerHit(channel):
 
 	print(f"[{timestamp}] - Decay detected! . . . Random Number: {rnd_nmbr}")
 
-def saveFile():
+async def saveFile():
 	with open(FILE_NAME, 'w') as file: 
 		file.write(json.dumps(RESULTS_DICT))
 
@@ -46,9 +50,9 @@ GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, callback = geigerHit)
 try:
 	while True:
 		# Start a loop that never ends, saving the file every 100 seconds
-		saveFile()
+		asyncio.run(saveFile())
 		sleep(10)
 
 except KeyboardInterrupt:
 	print(RESULTS_DICT)
-	saveFile()
+	asyncio.run(saveFile())
