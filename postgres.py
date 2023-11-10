@@ -7,6 +7,7 @@ class PostgresConnector:
 	def __init__(self):
 		self.connection = None
 		self.load_config()
+		self.connect()
 
 	def load_config(self):
 		try:

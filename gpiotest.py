@@ -7,9 +7,14 @@ import json
 import os 
 import asyncio
 import postgres
+import sys
 
-DB = postgres.PostgresConnector()
-DB.connect()
+BACKGROUND_MODE = False
+if "background" in sys.argv:
+	BACKGROUND_MODE = True
+
+if BACKGROUND_MODE:
+	DB = postgres.PostgresConnector()
 
 FILE_NAME = 'Output/random_number_results.txt'
 RESULTS_DICT = {}
@@ -42,7 +47,8 @@ def geigerHit(channel):
 	RESULTS_DICT[rnd_nmbr] += 1
 
 	# insert neuron detection into database
-	asyncio.run(insertNeuron(timestamp))
+	if BACKGROUND_MODE:
+		asyncio.run(insertNeuron(timestamp))
 
 	print(f"[{timestamp}] - Decay detected! - Random Number: {rnd_nmbr}")
 
@@ -51,6 +57,7 @@ async def insertNeuron(timestamp):
 		INSERT INTO neurons (detected_at)
 		VALUES(%s);
 	"""
+
 	values = [timestamp.strftime('%m/%d/%Y %H:%M:%S.%f')]
 
 	DB.execute_write(query, values)
